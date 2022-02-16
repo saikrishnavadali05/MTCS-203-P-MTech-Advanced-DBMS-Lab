@@ -1,0 +1,9 @@
+Aum Sri Sai Ram
+Lock Manager 
+submited by Sai Prasant Das 
+ 
+This lock manager work on the bases of first come first bases.Even if the transaction hold shared lock it has to wait for it turn to get exlucsive lock.
+
+program has to be compiled again using g++ lockmanager.cpp -std=c++11
+Main contain some cases.Some more cases can be added. 
+

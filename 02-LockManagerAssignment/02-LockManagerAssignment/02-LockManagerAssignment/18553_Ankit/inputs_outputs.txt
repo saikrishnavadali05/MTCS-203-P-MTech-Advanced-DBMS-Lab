@@ -1,0 +1,418 @@
+SAIRAM
+-------
+
+a) if a transaction waiting for an exclusive lock on a resource asks for the shared lock on the same resource and the resource is currently held by shared lock, then
+	   the transaction will granted shared lock and the exclusive request will still be in the queue.
+  INPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+int main()
+{
+  uint8_t ret = lock("AAA", 1234, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4657, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 4657 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 4657 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");  
+  return 0;
+}
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+  
+  OUTPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+ankit:~/Desktop/dbms/lock-manager-master/lockmanager2$ ./a.out 
+request from txn_id 1234 for SHARED lock on resource AAA...
+SHARED lock GRANTED for txnId 1234 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     SHARED          GRANTED
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     SHARED          GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4657 for SHARED lock on resource AAA...
+SHARED lock GRANTED for txnId 4657 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     SHARED          GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+TxnId: 4657     SHARED          GRANTED
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for SHARED lock on resource AAA...
+SHARED lock GRANTED for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     SHARED          GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+TxnId: 4657     SHARED          GRANTED
+TxnId: 4567     SHARED          GRANTED
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+
+b) if a transaction is asking for an exclusive lock on a resource, is holding shared lock on the resource and is the only txn. to have a lock on the resource its 
+	   lock_type is updated.
+   INPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+int main()
+{
+  uint8_t ret = lock("AAA", 1234, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+
+  //next call
+  ret = lock("AAA", 1234, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  return 0;
+}
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+
+ OUTPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+request from txn_id 1234 for SHARED lock on resource AAA...
+SHARED lock GRANTED for txnId 1234 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     SHARED          GRANTED
+-----------------------------------------------------------------------------------------
+
+request from txn_id 1234 for EXCLUSIVE lock on resource AAA...
+CAUGHT!!!
+EXCLUSIVE lock GRANTED for txnId 1234 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+c) if a txn is waiting for an exclusive lock on a resource held in exclusive lock by another resource and asks for a shared lock on the resource, its request will
+	   be put in the queue.
+  INPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+int main()
+{
+  uint8_t ret = lock("AAA", 1234, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  return 0;
+}
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+  OUTPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+ankit:~/Desktop/dbms/lock-manager-master/lockmanager2$ ./a.out 
+request from txn_id 1234 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock GRANTED for txnId 1234 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for SHARED lock on resource AAA...
+SHARED lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+TxnId: 4567     SHARED          WAITING
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+
+d) A txn can't unlock(remove from itself from the the queue) if it is in waiting state.
+  INPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+int main()
+{
+  uint8_t ret = lock("AAA", 1234, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  //next call
+  ret = unlock("AAA", 4567);
+  if(ret == true)
+  {
+    std::cout << "unlocked for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "could not unlock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+
+  // next call
+  printList("AAA");
+  return 0;
+}
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+
+  OUTPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+ankit:~/Desktop/dbms/lock-manager-master/lockmanager2$ ./a.out 
+request from txn_id 1234 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock GRANTED for txnId 1234 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for SHARED lock on resource AAA...
+SHARED lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     SHARED          WAITING
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for unlocking resource AAA...
+cannot be unlocked as txnId 4567 is not holding the lock
+could not unlock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     SHARED          WAITING
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+e) After asking for exclusive and shared locks on a resource both in the waiting status, a txn cannot have any further requests for the resource accepted.
+  INPUT:
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+int main()
+{
+  uint8_t ret = lock("AAA", 1234, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 1234 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // next call
+  ret = lock("AAA", 4567, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  // return 0;
+  // next call
+  ret = lock("AAA", 4567, lockType::SHARED);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "SHARED lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "SHARED lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  ret = lock("AAA", 4567, lockType::EXCLUSIVE);
+  if(ret == lockStatus::GRANTED)
+  {
+    std::cout << "EXCLUSIVE lock GRANTED for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  else
+  {
+    std::cout << "EXCLUSIVE lock WAITING for txnId " << 4567 << " on resource AAA" << std::endl;
+  }
+  printList("AAA");
+  return 0;
+}
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+OUTPUT
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+ankit:~/Desktop/dbms/lock-manager-master/lockmanager2$ ./a.out 
+request from txn_id 1234 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock GRANTED for txnId 1234 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for SHARED lock on resource AAA...
+SHARED lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+TxnId: 4567     SHARED          WAITING
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for SHARED lock on resource AAA...
+SHARED lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+TxnId: 4567     SHARED          WAITING
+-----------------------------------------------------------------------------------------
+
+request from txn_id 4567 for EXCLUSIVE lock on resource AAA...
+EXCLUSIVE lock WAITING for txnId 4567 on resource AAA
+
+-------------------------- resource_name: AAA -------------------------------------------
+TxnId: 1234     EXCLUSIVE       GRANTED
+TxnId: 4567     EXCLUSIVE       WAITING
+TxnId: 4567     SHARED          WAITING
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------

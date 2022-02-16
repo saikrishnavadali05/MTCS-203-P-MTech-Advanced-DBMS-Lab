@@ -1,0 +1,5 @@
+SAIRAM
+-------
+
+if a transaction waiting for an exclusive lock on a resource asks for the shared lock on the same resource and the resource is currently held by shared lock, then
+	   the transaction will granted shared lock and the exclusive request will still be in the queue.

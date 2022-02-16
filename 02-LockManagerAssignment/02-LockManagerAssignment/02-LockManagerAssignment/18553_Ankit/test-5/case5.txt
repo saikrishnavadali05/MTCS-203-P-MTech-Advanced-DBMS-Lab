@@ -1,0 +1,4 @@
+SAIRAM
+-------
+
+After asking for exclusive and shared locks on a resource both in the waiting status, a txn cannot have any further requests for the resource accepted.

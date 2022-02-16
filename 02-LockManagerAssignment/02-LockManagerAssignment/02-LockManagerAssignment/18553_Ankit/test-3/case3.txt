@@ -1,0 +1,5 @@
+SAIRAM
+-------
+
+if a txn is waiting for an exclusive lock on a resource held in exclusive lock by another resource and asks for a shared lock on the resource, its request will
+	   be put in the queue.

@@ -1,0 +1,14 @@
+Features Of LockManger:
+
+i) Transaction cant lock a resource if it is already having lock on that resource in the same lock type
+	for example: 
+	a)	lock("BBB", 442, lockType::SHARED); 
+		lock("BBB", 442, lockType::SHARED);	<DUPLICATE LOCKING IS NOT ALLOWED>
+	b)	lock("BBB", 442, lockType::EXCLUSIVE);
+		lock("BBB", 442, lockType::EXCLUSIVE);  <DUPLICATE LOCKING IS NOT ALLOWED>
+ii) Transaction can update its lockType from  EXCLUSIVE to SHARED 
+iii) Transaction can update its lockType from  SHARED to EXCLUSIVE (**** if no other transaction is waiting on the respective resource)
+iv) Transaction cant unlock any resource before it gets lock on any resource
+v) Transaction can get lock on a resource if no other transaction is waiting for that resource.
+vi) If SHARED lock exists on a resource by T0 and if T1 asks for SHARED then T1 also acquires the lock on that resource. this is possible only if no other transaction is waiting for that resource and it is asking EXCLUSIVE locking.
+    

@@ -1,0 +1,32 @@
+SAIRAM
+-------
+
+Note:
+1. Please compile the code using
+	g++ lockmanager2.cpp -std=c++11
+	
+2. Modification of main function is not necessary for the code to run.
+
+3. To test the code please modify the main function(if required) and request for various locks and unlocks.
+
+4. Some of the features implemented are:
+	a) if a transaction waiting for an exclusive lock on a resource asks for the shared lock on the same resource and the resource is currently held in shared lock, then
+	   the transaction will be granted shared lock and the exclusive request will still be in the queue.
+	b) if a transaction is asking for an exclusive lock on a resource, is holding shared lock on the resource and is the only txn. to have a lock on the resource its 
+	   lock_type is updated.
+	c) if a txn is waiting for an exclusive lock on a resource held in exclusive lock by another resource and asks for a shared lock on the resource, its request will
+	   be updated.
+	d) A txn can't unlock(remove from itself from the the queue) if it is in waiting state.
+	e) After asking for exclusive and shared locks on a resource both in the waiting status, a txn cannot have any further requests for the resource accepted.
+
+5. Each of these cases are tested and the relevent information(inputs and outputs) are provided in the file inputs_outputs.txt.
+
+6. The inputs and outputs for the tests are also given in separate folders as images.
+
+7. The submitted code is that of case 4(a).
+
+ 
+	
+ - Ankit Anand
+   IMTech(CS)
+   18553

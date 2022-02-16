@@ -1,0 +1,5 @@
+SAIRAM
+-------
+
+if a transaction is asking for an exclusive lock on a resource, is holding shared lock on the resource and is the only txn. to have a lock on the resource its 
+	   lock_type is updated.

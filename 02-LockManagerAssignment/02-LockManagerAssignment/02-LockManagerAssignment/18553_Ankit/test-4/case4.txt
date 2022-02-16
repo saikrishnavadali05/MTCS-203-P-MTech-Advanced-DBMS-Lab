@@ -1,0 +1,5 @@
+SAIRAM
+-------
+
+
+A txn can't unlock(remove from itself from the the queue) if it is in waiting state.
